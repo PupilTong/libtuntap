@@ -185,6 +185,43 @@ tuntap_sys_set_ipv4(struct device *dev, t_tun_in_addr *s4, uint32_t bits) {
 
 	return 0;
 }
+int
+tuntap_sys_get_ipv4(struct device *dev, t_tun_in_addr *s4, uint32_t * bits) {
+	struct ifreq ifr;
+	struct sockaddr_in mask;
+
+	(void)memset(&ifr, '\0', sizeof ifr);
+	(void)memcpy(ifr.ifr_name, dev->if_name, sizeof dev->if_name);
+
+    ifr.ifr_addr.sa_family = AF_INET;
+	if (ioctl(dev->ctrl_sock, SIOCGIFADDR, &ifr) == -1) {
+		tuntap_log(TUNTAP_LOG_ERR, "Can't get IP address");
+		return -1;
+	}
+	
+	/* Set the IP address first */
+	(void)memcpy(
+		s4, 
+		&(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr), 
+		sizeof(struct in_addr)
+	);
+	
+	/* Reinit the struct ifr */
+	(void)memset(&ifr, '\0', sizeof ifr);
+	(void)memcpy(ifr.ifr_name, dev->if_name, sizeof dev->if_name);
+    ifr.ifr_addr.sa_family = AF_INET;
+
+	/* Then get the netmask */
+	if (ioctl(dev->ctrl_sock, SIOCGIFNETMASK, &ifr) == -1) {
+		tuntap_log(TUNTAP_LOG_ERR, "Can't get netmask");
+		return -1;
+	}
+	(void)memset(&mask, '\0', sizeof mask);
+	(void)memcpy(&mask, &ifr.ifr_netmask, sizeof ifr.ifr_netmask);
+	*bits = mask.sin_addr.s_addr;
+	return 0;
+}
+
 
 int
 tuntap_sys_set_ipv6(struct device *dev, t_tun_in6_addr *s6, uint32_t bits) {

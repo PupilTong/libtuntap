@@ -115,6 +115,7 @@ int	 tuntap_sys_start(struct device *, int, int);
 void	 tuntap_sys_destroy(struct device *);
 int	 tuntap_sys_set_hwaddr(struct device *, struct ether_addr *);
 int	 tuntap_sys_set_ipv4(struct device *, t_tun_in_addr *, uint32_t);
+int	 tuntap_sys_get_ipv4(struct device *, t_tun_in_addr *, uint32_t *);
 int	 tuntap_sys_set_ipv6(struct device *, t_tun_in6_addr *, uint32_t);
 int	 tuntap_sys_set_ifname(struct device *, const char *, size_t);
 int	 tuntap_sys_set_descr(struct device *, const char *, size_t);

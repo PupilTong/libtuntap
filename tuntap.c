@@ -118,6 +118,35 @@ tuntap_set_ip(struct device *dev, const char *addr, int netmask) {
 	/* NOTREACHED */
 	return -1;
 }
+int
+tuntap_get_ipv4(struct device *dev, char *buf, int bufLen, int *netmask) {
+	t_tun_in_addr baddr4;
+	uint32_t mask;
+	int errval;
+
+	/* Only accept started device */
+	if (dev->tun_fd == TUNFD_INVALID_VALUE) {
+		tuntap_log(TUNTAP_LOG_NOTICE, "Device is not started");
+		return 0;
+	}
+
+	if (buf == NULL) {
+		tuntap_log(TUNTAP_LOG_ERR, "Invalid parameter 'buf'");
+		return -1;
+	}
+
+	(void)memset(&baddr4, '\0', sizeof baddr4);
+	if((tuntap_sys_get_ipv4(dev, &baddr4, &mask) == -1)) {
+		return -1;
+	}
+
+	/* Netmask */
+	mask = ntohl(mask);
+	*netmask = 0;
+	for(;mask;(mask)>>=1) (*netmask)+=mask & 1;
+	(void)inet_ntop(AF_INET , &baddr4, buf, bufLen);
+	return 0;
+}
 
 t_tun
 tuntap_get_fd(struct device *dev) {
